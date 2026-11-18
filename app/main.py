@@ -71,50 +71,53 @@ def index(request: Request, q: str = "", cook: str = ""):
 
 @app.post("/upload")
 def upload(
-    file: UploadFile = File(...),
+    files: list[UploadFile] = File(...),
     title: str = Form(""),
     tags: str = Form(""),
     note: str = Form(""),
     kind: str = Form("dokument"),
 ):
-    original = os.path.basename(file.filename or "datei")
-    stored_name = datetime.now().strftime("%Y%m%d_%H%M%S") + "_" + original
-    stored_path = os.path.join(db.UPLOAD_DIR, stored_name)
-    with open(stored_path, "wb") as f:
-        shutil.copyfileobj(file.file, f)
-
-    text = ingest.extract_text(stored_path)
-    now = datetime.now().isoformat(timespec="seconds")
     conn = db.get_conn()
-    if kind == "rezept":
-        ingredients, steps = recipes.parse_recipe_text(text)
-        conn.execute(
-            "INSERT INTO recipes (title, source, ingredients, steps, notes, created_at) "
-            "VALUES (?,?,?,?,?,?)",
-            (
-                title or os.path.splitext(original)[0],
-                original,
-                json.dumps(ingredients, ensure_ascii=False),
-                "\n".join(steps),
-                note,
-                now,
-            ),
-        )
-    else:
-        conn.execute(
-            "INSERT INTO documents (filename, stored_path, title, tags, note, extracted_text, filetype, created_at) "
-            "VALUES (?,?,?,?,?,?,?,?)",
-            (
-                original,
-                stored_path,
-                title or original,
-                tags,
-                note,
-                text,
-                os.path.splitext(original)[1].lower(),
-                now,
-            ),
-        )
+    for file in files:
+        original = os.path.basename((file.filename or "").replace("\\", "/"))
+        if not original:
+            continue
+        stored_name = datetime.now().strftime("%Y%m%d_%H%M%S_%f") + "_" + original
+        stored_path = os.path.join(db.UPLOAD_DIR, stored_name)
+        with open(stored_path, "wb") as f:
+            shutil.copyfileobj(file.file, f)
+
+        text = ingest.extract_text(stored_path)
+        now = datetime.now().isoformat(timespec="seconds")
+        if kind == "rezept":
+            ingredients, steps = recipes.parse_recipe_text(text)
+            conn.execute(
+                "INSERT INTO recipes (title, source, ingredients, steps, notes, created_at) "
+                "VALUES (?,?,?,?,?,?)",
+                (
+                    title or os.path.splitext(original)[0],
+                    original,
+                    json.dumps(ingredients, ensure_ascii=False),
+                    "\n".join(steps),
+                    note,
+                    now,
+                ),
+            )
+        else:
+            conn.execute(
+                "INSERT INTO documents (filename, stored_path, title, tags, note, extracted_text, filetype, created_at) "
+                "VALUES (?,?,?,?,?,?,?,?)",
+                (
+                    original,
+                    stored_path,
+                    title or original,
+                    tags,
+                    note,
+                    text,
+                    os.path.splitext(original)[1].lower(),
+                    now,
+                ),
+            )
     conn.commit()
     conn.close()
     return RedirectResponse(url="/", status_code=303)
