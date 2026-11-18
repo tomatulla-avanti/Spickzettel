@@ -40,7 +40,13 @@ Damit Text auf Fotos (z. B. abfotografierter Impfpass) erkannt wird, brauchst du
 - **macOS:** `brew install tesseract tesseract-lang`
 - **Windows:** Installer von „UB Mannheim – tesseract" herunterladen und installieren, Sprache „German" mit wählen
 
-Danach `pytesseract` (ist schon in requirements.txt) findet es automatisch. Die App zeigt oben auf der Seite an, ob OCR aktiv ist.
+Danach in der aktivierten venv zusätzlich installieren:
+
+```bash
+pip install pillow pytesseract
+```
+
+Dann findet die App Tesseract automatisch. Die App zeigt oben auf der Seite an, ob OCR aktiv ist. Ohne diesen Schritt läuft die App trotzdem – nur Fotos werden dann nicht per Text durchsucht.
 
 ## Aufbau des Projekts
 
