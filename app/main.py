@@ -128,6 +128,31 @@ def upload(
     return RedirectResponse(url="/?uploaded=%d" % saved, status_code=303)
 
 
+@app.post("/import-uploads")
+def import_uploads():
+    conn = db.get_conn()
+    existing = {r[0] for r in conn.execute("SELECT filename FROM documents")}
+    existing |= {r[0] for r in conn.execute("SELECT source FROM recipes")}
+    saved = 0
+    for name in sorted(os.listdir(db.UPLOAD_DIR)):
+        path = os.path.join(db.UPLOAD_DIR, name)
+        if not os.path.isfile(path) or name in existing:
+            continue
+        text = ingest.extract_text(path)
+        now = datetime.now().isoformat(timespec="seconds")
+        conn.execute(
+            "INSERT INTO documents (filename, stored_path, title, tags, note, extracted_text, filetype, created_at) "
+            "VALUES (?,?,?,?,?,?,?,?)",
+            (name, path, name, "", "", text, os.path.splitext(name)[1].lower(), now),
+        )
+        saved += 1
+        print("IMPORT:", name, flush=True)
+    conn.commit()
+    conn.close()
+    print("IMPORT fertig: %d neue Datei(en)" % saved, flush=True)
+    return RedirectResponse(url="/?uploaded=%d" % saved, status_code=303)
+
+
 @app.post("/recipe/add")
 def add_recipe(
     title: str = Form(...),
