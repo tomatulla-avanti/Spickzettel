@@ -19,6 +19,7 @@
 </head>
 <body>
 <h1>&#128204; Mein Spickzettel</h1>
+{% if uploaded %}<p style="color:#2f855a;font-weight:bold">&#9989; {{ uploaded }} Datei(en) gespeichert!</p>{% endif %}
 {% if not ocr_available %}
 <p class="ocr">Hinweis: Foto-Texterkennung (OCR) ist noch nicht eingerichtet &ndash; Fotos werden gespeichert, der Text darin ist aber noch nicht durchsuchbar. Siehe README.md ("Tesseract installieren").</p>
 {% endif %}
@@ -31,7 +32,7 @@
   <input type="text" name="title" placeholder="Titel (optional &ndash; sonst Dateiname)">
   <input type="text" name="tags" placeholder="Tags, z. B. Impfpass, Auto, Steuer 2024">
   <textarea name="note" rows="2" placeholder="Eigene Notiz (optional)"></textarea>
-  <label><input type="checkbox" name="kind" value="rezept"> Das ist ein Rezept-PDF (wird automatisch in Zutaten &amp; Schritte zerlegt)</label><br>
+  <label><input type="checkbox" name="kind" value="rezept"> Nur anhaken, wenn ALLE ausgewählten Dateien Rezept-PDFs sind!</label><br>
   <button type="submit">Speichern</button>
 </form>
 </section>
@@ -88,7 +89,7 @@
 </section>
 
 <section>
-<h2>&#128193; Alle Dokumente</h2>
+<h2>&#128193; Alle Dokumente ({{ docs | length }})</h2>
 <ul>
 {% for d in docs %}
   <li><a href="/document/{{ d.id }}">{{ d.title }}</a> <span class="tag">{{ d.tags }}</span>

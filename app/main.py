@@ -22,7 +22,7 @@ def fts_query(q):
 
 
 @app.get("/", response_class=HTMLResponse)
-def index(request: Request, q: str = "", cook: str = ""):
+def index(request: Request, q: str = "", cook: str = "", uploaded: int = 0):
     conn = db.get_conn()
     results = []
     if q.strip():
@@ -64,6 +64,7 @@ def index(request: Request, q: str = "", cook: str = ""):
             "recipes": recipes_prepared,
             "cook": cook,
             "cook_results": cook_results,
+            "uploaded": uploaded,
             "ocr_available": ingest.OCR_AVAILABLE,
         },
     )
@@ -78,10 +79,12 @@ def upload(
     kind: str = Form("dokument"),
 ):
     conn = db.get_conn()
+    saved = 0
     for file in files:
         original = os.path.basename((file.filename or "").replace("\\", "/"))
         if not original:
             continue
+        saved += 1
         stored_name = datetime.now().strftime("%Y%m%d_%H%M%S_%f") + "_" + original
         stored_path = os.path.join(db.UPLOAD_DIR, stored_name)
         with open(stored_path, "wb") as f:
@@ -120,7 +123,7 @@ def upload(
             )
     conn.commit()
     conn.close()
-    return RedirectResponse(url="/", status_code=303)
+    return RedirectResponse(url="/?uploaded=%d" % saved, status_code=303)
 
 
 @app.post("/recipe/add")
