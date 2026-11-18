@@ -85,6 +85,7 @@ def upload(
         if not original:
             continue
         saved += 1
+        print("UPLOAD empfangen:", original, flush=True)
         stored_name = datetime.now().strftime("%Y%m%d_%H%M%S_%f") + "_" + original
         stored_path = os.path.join(db.UPLOAD_DIR, stored_name)
         with open(stored_path, "wb") as f:
@@ -123,6 +124,7 @@ def upload(
             )
     conn.commit()
     conn.close()
+    print("UPLOAD fertig: %d Datei(en) gespeichert" % saved, flush=True)
     return RedirectResponse(url="/?uploaded=%d" % saved, status_code=303)
 
 
