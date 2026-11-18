@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>{{ doc.title }}</title>
+<style>
+ body { font-family: sans-serif; max-width: 800px; margin: 2em auto; padding: 0 1em; }
+ pre { background:#f4f4f4; padding:1em; border-radius:8px; white-space:pre-wrap; }
+ button { padding:.4em 1em; background:#c53030; color:#fff; border:none; border-radius:6px; cursor:pointer; }
+</style>
+</head>
+<body>
+<h1>{{ doc.title }}</h1>
+<p><strong>Datei:</strong> {{ doc.filename }} &middot; <strong>Tags:</strong> {{ doc.tags }} &middot; <strong>angelegt:</strong> {{ doc.created_at }}</p>
+{% if doc.note %}<p><strong>Notiz:</strong> {{ doc.note }}</p>{% endif %}
+<h2>Erkannter Text</h2>
+<pre>{{ doc.extracted_text if doc.extracted_text else "(kein Text erkannt – Foto ohne OCR? siehe README)" }}</pre>
+<form method="post" action="/document/{{ doc.id }}/delete"><button type="submit">Dokument löschen</button></form>
+<p><a href="/">&larr; zurück zur Übersicht</a></p>
+</body>
+</html>
